@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:latest # Use the official PostgreSQL image
+    container_name: my_postgres_db
+    environment:
+      POSTGRES_USER: postgres # Database user
+      POSTGRES_PASSWORD: admin # Database password
+      POSTGRES_DB: ISIroute # Database name
+    ports:
+      - "5432:5432" # Expose port 5432 for PostgreSQL access
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist data between container restarts
+
+volumes:
+  postgres_data: # Volume to store PostgreSQL data
