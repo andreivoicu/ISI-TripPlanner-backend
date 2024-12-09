@@ -7,13 +7,13 @@ import re
 import bcrypt
 
 app = Flask(__name__)
-
 DATABASE_URL = "postgresql://postgres:admin@localhost:5432/ISIroute"
 
 # Initialize SQLAlchemy
 Base = declarative_base()
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # Define the User model
 class User(Base):
@@ -29,6 +29,7 @@ class User(Base):
 # Function to create the tables (in case they don't exist yet)
 def create_tables():
     Base.metadata.create_all(bind=engine)
+
 
 # Function to add a user
 def add_user(first_name: str, last_name: str, username: str, password: str, email: str):
@@ -97,6 +98,7 @@ def check_password(password, hashed):
 
 @app.route('/register', methods=['POST'])
 def register():
+    create_tables()
     if request.method == 'POST':
         data = request.get_json()
 
@@ -123,14 +125,12 @@ def register():
                 return jsonify({'error': is_valid}), 400
                 
         hashed_password = hash_password(password)
+        users = get_users()
         response_message, response_code = add_user(first_name=firstName, last_name=lastName, username=username, password=hashed_password, email=email)
-        
-        # users = get_users()
-        # print(users)
 
         return jsonify({'message': response_message}), response_code
 
 
 if __name__ == '__main__':
     app.run()
-    create_tables()
+    
