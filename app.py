@@ -5,8 +5,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import re
 import bcrypt
+import jwt
+import datetime
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'ISIproiect2024'
 DATABASE_URL = "postgresql://postgres:admin@localhost:5432/ISIroute"
 
 # Initialize SQLAlchemy
@@ -45,10 +48,10 @@ def add_user(first_name: str, last_name: str, username: str, password: str, emai
         db.add(new_user)  # Add the user object to the session
         db.commit()  # Commit the transaction to the database
         db.refresh(new_user)  # Refresh the instance to get the new ID from the database
-        return f"User {new_user.username} added successfully!", 201
+        return jsonify({'message': f"User {new_user.username} added successfully!"}), 201
     except Exception as e:
         db.rollback()  # In case of error, rollback the transaction
-        return f"Error adding user: {e}", 500
+        return jsonify({'error': f"Error adding user: {e}"}), 500
     finally:
         db.close()  # Always close the session
 
@@ -89,14 +92,38 @@ def validate_name(name, field_name):
 def hash_password(password):
     password_bytes = password.encode('utf-8')
     hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    hashed = hashed.decode('utf-8')
     return hashed
 
 def check_password(password, hashed):
     password_bytes = password.encode('utf-8')
+    hashed = hashed.encode('utf-8')
+    print(password_bytes)
+    print(hashed)
     return bcrypt.checkpw(password_bytes, hashed)
 
+def verify_if_user_exists(username, email):
+    users = get_users()
+    for user in users:
+        if username == user.username:
+            return 'Username already exists', 400
+        elif email == user.email:
+            return 'Email already exists', 400
+    return False, 200
 
-@app.route('/register', methods=['POST'])
+def generate_token(user):
+    # Create a dictionary payload to encode in the JWT
+    payload = {
+        'sub': user.id,  # Subject, user ID
+        'username': user.username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Expiration time (1 hour)
+    }
+    # Encode the payload with the secret key
+    token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm="HS256")
+    return token
+
+
+@app.route('/auth/register', methods=['POST'])
 def register():
     create_tables()
     if request.method == 'POST':
@@ -105,16 +132,16 @@ def register():
         if not data:
             return jsonify({'error': 'Missing data'}), 400
         
-        required_fields = ['firstName', 'lastName', 'username', 'password', 'email']
+        required_fields = ['first_name', 'last_name', 'username', 'password', 'email']
         missing_field = next((field for field in required_fields if field not in data), None)
         if missing_field:
             return jsonify({'error': f'Missing {missing_field}'}), 400
 
-        [firstName, lastName, username, password, email] = [data.get(field) for field in required_fields]
+        [first_name, last_name, username, password, email] = [data.get(field) for field in required_fields]
 
         fields = [
-            (firstName, lambda value: validate_name(value, 'First name')),
-            (lastName, lambda value: validate_name(value, 'Last name')),
+            (first_name, lambda value: validate_name(value, 'First name')),
+            (last_name, lambda value: validate_name(value, 'Last name')),
             (username, validate_username),
             (password, validate_password),
             (email, validate_email),
@@ -125,10 +152,43 @@ def register():
                 return jsonify({'error': is_valid}), 400
                 
         hashed_password = hash_password(password)
-        users = get_users()
-        response_message, response_code = add_user(first_name=firstName, last_name=lastName, username=username, password=hashed_password, email=email)
+        
+        response, response_code = verify_if_user_exists(username, email)
+        if response:
+            return jsonify({'error': response}), response_code
 
-        return jsonify({'message': response_message}), response_code
+        return add_user(first_name=first_name, last_name=last_name, username=username, password=hashed_password, email=email)
+    
+    return jsonify({'error': 'Invalid request method'}), 405
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    if request.method == 'POST':
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'Missing data'}), 400
+        
+        required_fields = ['username', 'password']
+        missing_field = next((field for field in required_fields if field not in data or data[field] == ''), None)
+        if missing_field:
+            return jsonify({'error': f'Missing {missing_field}'}), 400
+        
+        username = data.get('username')
+        password = data.get('password')
+
+        db = SessionLocal()
+        user = db.query(User).filter(User.username == username).first()
+        db.close()
+        if not user:
+            return jsonify({'error': 'Invalid username'}), 400
+        if check_password(password, user.password):
+            token = generate_token(user)
+            return jsonify({'message': 'Login successful', 'token': token}), 200
+        else:
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+    return jsonify({'error': 'Invalid request method'}), 405
 
 
 if __name__ == '__main__':
