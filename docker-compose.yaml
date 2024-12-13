@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
   db:
     image: postgres:latest # Use the official PostgreSQL image
-    container_name: my_postgres_db
+    container_name: isi_db
     environment:
       POSTGRES_USER: postgres # Database user
       POSTGRES_PASSWORD: admin # Database password
