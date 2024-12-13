@@ -1,7 +1,8 @@
 from flask import request, jsonify # type: ignore
 from . import app
-from .services.auth_service import register_user, login_user
-from .services.user_service import get_all_users
+from .services.auth_service import *
+from .services.user_service import *
+from .services.route_service import *
 
 @app.route('/auth/register', methods=['POST'])
 def register():
@@ -24,3 +25,12 @@ def login():
 @app.route('/user', methods=['GET'])
 def get_users():
     return get_all_users()
+
+@app.route('/user/route', methods=['POST'])
+def add_route():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'Missing data'}), 400
+    
+    return add_route_to_user(data)
