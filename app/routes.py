@@ -1,7 +1,9 @@
 from flask import request, jsonify # type: ignore
 from . import app
-from .services.auth_service import register_user, login_user
+from .services.auth_service import *
 from .services.user_service import *
+from .services.route_service import *
+
 
 @app.route('/auth/register', methods=['POST'])
 def register():

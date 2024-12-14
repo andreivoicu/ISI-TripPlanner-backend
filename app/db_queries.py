@@ -1,6 +1,6 @@
 from flask import jsonify # type: ignore
 from . import SessionLocal
-from .models import User
+from .models import User, Route
 
 def add_user(first_name, last_name, username, password, email):
     db = SessionLocal()
@@ -8,8 +8,8 @@ def add_user(first_name, last_name, username, password, email):
         first_name=first_name,
         last_name=last_name,
         username=username,
-        password=password,
-        email=email
+        password_hash=password,
+        email_address=email
     )
     try:
         db.add(new_user)
@@ -42,6 +42,25 @@ def get_user_from_db_by_id(id):
     db.close()
     return user
 
+def add_route(city, total_time_spent, user_id):
+    db = SessionLocal()
+    new_route = Route(
+        city=city,
+        total_time_spent=total_time_spent,
+        user_id=user_id,
+        route=0
+    )
+    try:
+        db.add(new_route)
+        db.commit()
+        db.refresh(new_route)
+        return jsonify({'message': f"Route added successfully!"}), 201
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': f"Error adding route: {e}"}), 500
+    finally:
+        db.close()
+        
 def verify_if_user_exists(username, email):
     db = SessionLocal()
     user = db.query(User).filter(User.username == username).first()
