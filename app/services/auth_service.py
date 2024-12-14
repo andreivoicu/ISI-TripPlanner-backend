@@ -1,7 +1,7 @@
 from flask import jsonify # type: ignore
 from .validators import validate_user_data
 from ..utils import hash_password
-from ..db_queries import add_user, get_user_by_username, verify_if_user_exists
+from ..db_queries import *
 from ..utils import generate_token, check_password
 
 def register_user(data):
@@ -27,7 +27,7 @@ def login_user(data):
     username = data.get('username')
     password = data.get('password')
 
-    user = get_user_by_username(username)
+    user = get_user_from_db_by_username(username)
     if not user:
         return jsonify({'error': 'Invalid username'}), 400
 
