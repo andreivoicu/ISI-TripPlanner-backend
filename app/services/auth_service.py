@@ -31,7 +31,7 @@ def login_user(data):
     if not user:
         return jsonify({'error': 'Invalid username'}), 400
 
-    if check_password(password, user.password_hash):
+    if check_password(password, user.password_hashw):
         token = generate_token(user)
         return jsonify({'message': 'Login successful', 'token': token}), 200
 

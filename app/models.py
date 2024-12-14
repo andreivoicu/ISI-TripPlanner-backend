@@ -50,7 +50,6 @@ class Route(Base):
 
     id = Column(BigInteger, primary_key=True, index=True)
     city = Column(String(100), nullable=False)
-    route = Column(BigInteger, nullable=False)
     total_time_spent = Column(BigInteger, nullable=False)
     user_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
     points_of_interest = relationship('PointOfInterest', back_populates='route', cascade='all, delete-orphan')
