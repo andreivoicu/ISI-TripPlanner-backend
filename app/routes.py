@@ -29,11 +29,13 @@ def get_users():
 
 @app.route('/user', methods=['GET'])
 def get_user():
-    username = request.args.get('username')
-    if username:
-        return get_user_by_username(username)
+    # get token from header 
+    token = request.headers.get('Authorization')
+    print(token)
+    if token:
+        return get_user_by_token(token)
     else:
-        return jsonify({"error": "Username not provided"}), 400
+        return jsonify({"error": "Token not provided"}), 400
 
 @app.route('/user', methods=['DELETE'])
 def delete_user():

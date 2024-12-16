@@ -1,29 +1,24 @@
 from flask import jsonify # type: ignore
 from ..db_queries import *
 from .validators import *
+from ..utils import decode_token
 
 def get_all_users():
     users = get_users()
     return jsonify([user.serialize() for user in users])
 
-def get_user_by_username(username):
-    
-    if username == '' :
-        return jsonify({'error': 'Username not provided'}), 400
-    user = get_user_from_db_by_username(username)
-    if user:
-        return jsonify(user.serialize()), 200
-    return jsonify({'error': 'User not found'}), 404
-
-def get_user_by_id(id):
-    
-    user = get_user_from_db_by_id(id)
-    if user:
-        return jsonify(user.serialize()), 200
+def get_user_by_token(token):
+    if token == '' :
+        return jsonify({'error': 'Token not provided'}), 400
+    payload = decode_token(token)
+    if payload:
+        user_id = int(payload['user_id'])
+        user = get_user_from_db_by_id(user_id)
+        if user:
+            return jsonify(user.serialize()), 200
     return jsonify({'error': 'User not found'}), 404
 
 def delete_user_by_username(username):
-
     if username == '' :
         return jsonify({'error': 'Username not provided'}), 400
     return delete_user_from_db(username)
