@@ -31,7 +31,11 @@ def get_users():
 def get_user():
     # get token from header 
     token = request.headers.get('Authorization')
-    print(token)
+
+    if not token or not token.startswith('Bearer '):
+        return jsonify({'error': 'Invalid Authorization header format'}), 400
+    
+    token = token.split(' ')[1]
     if token:
         return get_user_by_token(token)
     else:
