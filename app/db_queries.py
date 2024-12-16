@@ -8,8 +8,8 @@ def add_user(first_name, last_name, username, password, email):
         first_name=first_name,
         last_name=last_name,
         username=username,
-        password_hash=password,
-        email_address=email
+        password=password,
+        email=email
     )
     try:
         db.add(new_user)

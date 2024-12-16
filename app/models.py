@@ -22,8 +22,8 @@ class User(Base):
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     username = Column(String(20), unique=True, nullable=False)
-    password_hash = Column(Text, nullable=False)
-    email_address = Column(String(100), unique=True, nullable=False)
+    password = Column(Text, nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
     current_route = Column(BigInteger, ForeignKey('routes.id'), nullable=True)
     previous_routes = relationship(
         'Route', 
@@ -33,7 +33,7 @@ class User(Base):
     )
 
     def __repr__(self):
-        return f"<User(username={self.username}, email_address={self.email_address})>"
+        return f"<User(username={self.username}, email={self.email})>"
 
     def serialize(self):
         return {
@@ -41,7 +41,7 @@ class User(Base):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'username': self.username,
-            'email_address': self.email_address,
+            'email': self.email,
         }
 
 
