@@ -3,6 +3,7 @@ from sqlalchemy import create_engine # type: ignore
 from sqlalchemy.orm import sessionmaker # type: ignore
 from .models import Base
 from dotenv import load_dotenv # type: ignore
+from flask_cors import CORS # type: ignore
 import os
 
 # Load environment variables from .env file
@@ -11,6 +12,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Initialize the Flask app
 app = Flask(__name__)
+CORS(app)
 app.config['JSON_SORT_KEYS'] = False
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 

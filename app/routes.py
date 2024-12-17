@@ -59,12 +59,14 @@ def delete_user():
 @app.route('/user', methods=['PUT'])
 def update_user_by_token():
     data = request.get_json()
+    print(data)
     if not data:
         return jsonify({'error': 'Missing data'}), 400
     token = request.headers.get('Authorization')
     if not token or not token.startswith('Bearer '):
         return jsonify({'error': 'Invalid Authorization header format'}), 400   
     token = token.split(' ')[1]
+    print(token)
     if token:     
         return update_user(data, token)
     else:

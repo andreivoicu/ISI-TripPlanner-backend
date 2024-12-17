@@ -65,6 +65,7 @@ def verify_if_user_exists(username, email):
     db = SessionLocal()
     user = db.query(User).filter(User.username == username).first()
     if user:
+        print('Username already exists')
         return 'Username already exists', 400
     user = db.query(User).filter(User.email == email).first()
     if user:
@@ -81,12 +82,12 @@ def delete_user_from_db(id):
     return jsonify({'error': 'User not found'}), 404
 
 def update_user_in_db(field, value, id):
-
+    print('Entering update_user_in_db')
     if field == 'username' and verify_if_user_exists(value, '') != (None, 200):
-        return jsonify({'error': 'Username already exists'}), 400
+        return 'Username already exists', 400
     if field == 'email' and verify_if_user_exists('', value) != (None, 200):
-        return jsonify({'error': 'Email already exists'}), 400
-
+        return 'Email already exists', 400
+    print('Updating user')
     
     db = SessionLocal()
     user = db.query(User).filter(User.id == id).first()

@@ -43,8 +43,11 @@ def update_user(data, token):
     if payload:
         user_id = int(payload['user_id'])
 
+    user = get_user_from_db_by_id(user_id)
+    user = user.serialize()
+
     for field in fields_to_update:
-        if field in data:
+        if field in data and data[field] != user[field]:      
             if field == 'username':
                 validation_result = validate_username(data[field])
             elif field == 'password':
@@ -55,10 +58,10 @@ def update_user(data, token):
                 validation_result = validate_name(data[field], field)
         
             if validation_result is not True:
-                return validation_result, 400
+                return jsonify({'error': validation_result}), 400
             
             result = update_user_in_db(field, data[field], user_id)
             if result[1] != 200:
-                return result
+                return jsonify({'error': result[0]}), 400
     
     return jsonify({'message': 'User updated successfully'}), 200
