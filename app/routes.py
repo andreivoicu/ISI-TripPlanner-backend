@@ -43,17 +43,31 @@ def get_user():
 
 @app.route('/user', methods=['DELETE'])
 def delete_user():
-    username = request.args.get('username')
-    if username:
-        return delete_user_by_username(username)
+
+    token = request.headers.get('Authorization')
+
+    if not token or not token.startswith('Bearer '):
+        return jsonify({'error': 'Invalid Authorization header format'}), 400
+    
+    token = token.split(' ')[1]
+    if token:
+        
+        return delete_user_by_token(token)
     else:
         return jsonify({"error": "Username not provided"}), 400
     
 @app.route('/user', methods=['PUT'])
-def update_user_by_id():
+def update_user_by_token():
     data = request.get_json()
     if not data:
         return jsonify({'error': 'Missing data'}), 400
-    return update_user(data)
+    token = request.headers.get('Authorization')
+    if not token or not token.startswith('Bearer '):
+        return jsonify({'error': 'Invalid Authorization header format'}), 400   
+    token = token.split(' ')[1]
+    if token:     
+        return update_user(data, token)
+    else:
+        return jsonify({"error": "Username not provided"}), 400
 
     

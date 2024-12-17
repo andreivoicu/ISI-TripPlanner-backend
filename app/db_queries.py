@@ -71,13 +71,13 @@ def verify_if_user_exists(username, email):
         return 'Email already exists', 400
     return None, 200
 
-def delete_user_from_db(username):
+def delete_user_from_db(id):
     db = SessionLocal()
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.id == id).first()
     if user:
         db.delete(user)
         db.commit()
-        return jsonify({'message': f"User {username} deleted successfully"}), 200
+        return jsonify({'message': f"User {user.username} deleted successfully"}), 200
     return jsonify({'error': 'User not found'}), 404
 
 def update_user_in_db(field, value, id):
