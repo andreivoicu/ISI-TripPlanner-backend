@@ -1,9 +1,12 @@
+import os
+import requests
 from flask import request, jsonify # type: ignore
 from . import app
 from .services.auth_service import *
 from .services.user_service import *
 from .services.route_service import *
 
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 @app.route('/auth/register', methods=['POST'])
 def register():
@@ -72,4 +75,21 @@ def update_user_by_token():
     else:
         return jsonify({"error": "Username not provided"}), 400
 
-    
+@app.route('/places/google', methods=['GET'])
+def get_place_suggestions_google():
+    print("entered endpoint function")
+    print(f"API key: {GOOGLE_API_KEY}")
+
+    params = {
+        "location": request.args.get('location'),
+        "radius": request.args.get('radius'),
+        "keyword": request.args.get('keyword'),
+        "key": GOOGLE_API_KEY,
+    }
+
+    print(params)
+
+    response = requests.get("https://maps.googleapis.com/maps/api/place/nearbysearch/json", params=params)
+
+    return jsonify(response.json())
+
