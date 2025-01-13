@@ -1,6 +1,8 @@
 from flask import jsonify # type: ignore
 from . import SessionLocal
-from .models import User, Route
+from .models import User, Route, PointOfInterest
+import datetime
+
 
 def add_user(first_name, last_name, username, password, email):
     db = SessionLocal()
@@ -97,3 +99,76 @@ def update_user_in_db(field, value, id):
         return jsonify({'message': f"User {user.username} updated successfully with {value} on {field}"}), 200
     return jsonify({'error': 'User not found'}), 404
 
+
+def add_point_of_interest_to_db(name, latitude, longitude, route_id, rating):
+
+    db = SessionLocal()
+    new_point_of_interest = PointOfInterest(
+        name=name,
+        latitude=latitude,
+        longitude=longitude,
+        route_id=route_id,
+        rating=rating
+    )
+    try:
+        db.add(new_point_of_interest)
+        db.commit()
+        db.refresh(new_point_of_interest)
+        print("point of interest added successfully!")
+        return jsonify({'message': f"Point of interest {name} added successfully!"}), 201
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': f"Error adding point of interest {name}: {e}"}), 500
+    finally:
+        db.close()
+    
+def search_points_of_interest_by_route_id(route_id):
+    db = SessionLocal()
+    points = db.query(PointOfInterest).filter(PointOfInterest.route_id == route_id).all()
+    db.close()
+    print(points)
+    return points
+
+
+def add_route_to_db(city, points_list, user_id):
+
+    timestamp = datetime.datetime.now()
+    new_route = Route(
+        city=city,
+        user_id=user_id,
+        timeSTAMP = timestamp
+    )
+
+    db = SessionLocal()
+    try:
+        db.add(new_route)
+        db.commit()
+        db.refresh(new_route)
+        print("Route added successfully!")
+    except Exception as e:
+        db.rollback()
+        print("Error adding route: {e}")
+    finally:
+        db.close()
+
+    for point in points_list:
+        print(point)
+        print(type(point))
+        add_point_of_interest_to_db(point['name'], point['latitude'], point['longitude'], new_route.id, point['rating'])
+
+    db = SessionLocal()
+    new_route = db.query(Route).filter_by(id=new_route.id).first()
+    #put the points in route
+    new_route.points_of_interest = search_points_of_interest_by_route_id(new_route.id)
+    db.commit()
+    db.close()
+    return jsonify({'message': f"Route added successfully!"}), 201
+
+def get_routes_by_user_id(user_id):
+    db = SessionLocal()
+    routes = db.query(Route).filter(Route.user_id == user_id).all()
+    db.close()
+    return routes
+
+
+    
