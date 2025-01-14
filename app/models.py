@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Text, ForeignKey, DateTime, Enum # type: ignore
+from sqlalchemy import Column, BigInteger, String, Text, ForeignKey, DateTime, Enum, Float # type: ignore
 from sqlalchemy.ext.declarative import declarative_base # type: ignore
 from sqlalchemy.orm import relationship # type: ignore
 import enum 
@@ -83,8 +83,8 @@ class PointOfInterest(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     type = Column(Enum(PointType), nullable=True)
     name = Column(String(100), nullable=False)
-    latitude = Column(BigInteger, nullable=False)
-    longitude = Column(BigInteger, nullable=False)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
     time_spent = Column(BigInteger, nullable=True)
     route_id = Column(BigInteger, ForeignKey('routes.id'), nullable=True)
     price_range = Column(BigInteger, nullable=True)
