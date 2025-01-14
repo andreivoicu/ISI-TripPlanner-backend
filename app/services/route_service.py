@@ -1,4 +1,4 @@
-from ..db_queries import add_route
+from ..db_queries import add_route_to_db
 from flask import jsonify # type: ignore
 from ..db_queries import *
 from ..utils import decode_token
@@ -8,7 +8,7 @@ def add_route(data, token):
         return jsonify({'error': 'Token not provided'}), 400
     if token == '' :
         return jsonify({'error': 'Token not provided'}), 400
-    payload = decode_token(token)    
+    payload = decode_token(token)
     if payload:
         user_id = int(payload['user_id'])
         return add_route_to_db(data['city'], data['sites'], user_id)

@@ -5,6 +5,7 @@ from . import app
 from .services.auth_service import *
 from .services.user_service import *
 from .services.route_service import *
+from .services.poi_service import *
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
@@ -116,5 +117,9 @@ def get_routes():
     
     token = token.split(' ')[1]
     return get_routes_by_token(token)
+
+@app.route('/places', methods=['GET'])
+def get_places():
+    return get_pois()
 
     

@@ -55,7 +55,7 @@ class Route(Base):
     timeSTAMP = Column(DateTime, nullable=True)
     total_time_spent = Column(BigInteger, nullable=True)
     user_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
-    points_of_interest = relationship('PointOfInterest', back_populates='route', cascade='all, delete-orphan')
+    points_of_interest = relationship('PointOfInterest', back_populates='route', cascade='all, delete-orphan', lazy='joined')
 
     user = relationship(
         'User', 
@@ -91,15 +91,15 @@ class PointOfInterest(Base):
     rating = Column(BigInteger, nullable=False)
 
 
-    route = relationship('Route', back_populates='points_of_interest')
+    route = relationship('Route', back_populates='points_of_interest', lazy='joined')
 
     def __repr__(self):
-        return f"<PointOfInterest(type={self.type}, latitude={self.latitude}, longitude={self.longitude})>"
+        return f"<PointOfInterest(id={self.id}, route_id={self.route_id}, type={self.type}, latitude={self.latitude}, longitude={self.longitude})>"
 
     def serialize(self):
         return {
             'id': self.id,
-            'type': self.type.value,
+            'type': None if self.type is None else self.type.value,
             'name': self.name,
             'latitude': self.latitude,
             'longitude': self.longitude,
