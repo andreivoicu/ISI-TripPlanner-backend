@@ -10,7 +10,7 @@ def get_all_users():
 def get_user_by_token(token):
     if token == '' :
         return jsonify({'error': 'Token not provided'}), 400
-    payload = decode_token(token)
+    payload = decode_token(token)    
     if payload:
         user_id = int(payload['user_id'])
         user = get_user_from_db_by_id(user_id)

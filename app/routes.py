@@ -5,6 +5,7 @@ from . import app
 from .services.auth_service import *
 from .services.user_service import *
 from .services.route_service import *
+from .services.poi_service import *
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
@@ -93,3 +94,32 @@ def get_place_suggestions_google():
 
     return jsonify(response.json())
 
+@app.route('/routes', methods=['POST'])
+def create_route():
+
+    token = request.headers.get('Authorization')
+
+    if not token or not token.startswith('Bearer '):
+        return jsonify({'error': 'Invalid Authorization header format'}), 400
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Missing data'}), 400
+    token = token.split(' ')[1]
+    return add_route(data, token)
+    
+@app.route('/routes', methods=['GET'])
+def get_routes():
+    token = request.headers.get('Authorization')
+
+    if not token or not token.startswith('Bearer '):
+        return jsonify({'error': 'Invalid Authorization header format'}), 400
+    
+    token = token.split(' ')[1]
+    return get_routes_by_token(token)
+
+@app.route('/places', methods=['GET'])
+def get_places():
+    return get_pois()
+
+    

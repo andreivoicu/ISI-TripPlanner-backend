@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Text, ForeignKey, Enum # type: ignore
+from sqlalchemy import Column, BigInteger, String, Text, ForeignKey, DateTime, Enum # type: ignore
 from sqlalchemy.ext.declarative import declarative_base # type: ignore
 from sqlalchemy.orm import relationship # type: ignore
 import enum 
@@ -6,13 +6,15 @@ import enum
 Base = declarative_base()
 
 class PointType(enum.Enum):
-    PARK = "Park"
-    MUSEUM = "Museum"
-    HISTORIC_SITE = "Historic Site"
-    RESTAURANT = "Restaurant"
-    PUB = "Pub"
-    CAFFE = "Caffe"
-    BAR = "Bar"
+    PARK = "park"
+    MUSEUM = "museum"
+    HISTORIC_SITES = "historic sites"
+    RESTAURANT = "restaurant"
+    PUB = "pub"
+    CAFFE = "caffe"
+    BAR = "bar"
+    TOURIST_ATTRACTION = "tourist attraction"
+    ART_GALERY = "art gallery"
     OTHER = "Other"
 
 class User(Base):
@@ -50,9 +52,10 @@ class Route(Base):
 
     id = Column(BigInteger, primary_key=True, index=True)
     city = Column(String(100), nullable=False)
-    total_time_spent = Column(BigInteger, nullable=False)
+    timeSTAMP = Column(DateTime, nullable=True)
+    total_time_spent = Column(BigInteger, nullable=True)
     user_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
-    points_of_interest = relationship('PointOfInterest', back_populates='route', cascade='all, delete-orphan')
+    points_of_interest = relationship('PointOfInterest', back_populates='route', cascade='all, delete-orphan', lazy='joined')
 
     user = relationship(
         'User', 
@@ -61,36 +64,47 @@ class Route(Base):
     )
 
     def __repr__(self):
-        return f"<Route(city={self.city}, total_time_spent={self.total_time_spent})>"
+        return f"<Route(city={self.city}, timeSTAMP={self.timeSTAMP})>"
 
     def serialize(self):
         return {
             'id': self.id,
             'city': self.city,
-            'route': self.route,
+            'timeSTAMP': self.timeSTAMP,
             'total_time_spent': self.total_time_spent,
             'user_id': self.user_id,
+            'points_of_interest': [point.serialize() for point in self.points_of_interest],
+            
         }
 
 class PointOfInterest(Base):
     __tablename__ = 'points_of_interest'
 
     id = Column(BigInteger, primary_key=True, index=True)
-    type = Column(Enum(PointType), nullable=False)
-    location = Column(String(200), nullable=False)
-    time_spent = Column(BigInteger, nullable=False)
-    route_id = Column(BigInteger, ForeignKey('routes.id'), nullable=False)
+    type = Column(Enum(PointType), nullable=True)
+    name = Column(String(100), nullable=False)
+    latitude = Column(BigInteger, nullable=False)
+    longitude = Column(BigInteger, nullable=False)
+    time_spent = Column(BigInteger, nullable=True)
+    route_id = Column(BigInteger, ForeignKey('routes.id'), nullable=True)
+    price_range = Column(BigInteger, nullable=True)
+    rating = Column(BigInteger, nullable=False)
 
-    route = relationship('Route', back_populates='points_of_interest')
+
+    route = relationship('Route', back_populates='points_of_interest', lazy='joined')
 
     def __repr__(self):
-        return f"<PointOfInterest(type={self.type}, location={self.location})>"
+        return f"<PointOfInterest(id={self.id}, route_id={self.route_id}, type={self.type}, latitude={self.latitude}, longitude={self.longitude})>"
 
     def serialize(self):
         return {
             'id': self.id,
-            'type': self.type.value,
-            'location': self.location,
+            'type': None if self.type is None else self.type.value,
+            'name': self.name,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
             'time_spent': self.time_spent,
             'route_id': self.route_id,
+            'price_range': self.price_range,
+            'rating': self.rating,
         }
